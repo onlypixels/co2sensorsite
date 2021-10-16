@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            
+        </title>
+        <style type="text/css">
+            * {
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            body.super_safe {
+                background-color: #99FF99;
+            }
+            body.super_safe * {
+                color: Black;
+            }
+
+            body.safe {
+                background-color: #AAFF99;
+            }
+            body.safe * {
+                color: Black;
+            }
+
+            body.intermediate {
+                background-color: #FFFF99;
+            }
+            body.intermediate * {
+                color: Black;
+            }
+
+
+            body.unsafe {
+                background-color: #FFFF99;
+            }
+            body.unsafe * {
+                color: Black;
+            }
+
+        </style>
+        <script type="text/javascript">
+            // <!--
+
+            const SUPER_SAFE_CO2 = 700;
+            const SAFE_CO2 = 1000;
+            const INTERMEDIATE_CO2 = 1500;
+
+            const SUPER_SAFE_CO2_CSS = "super_safe";
+            const SAFE_CO2_CSS = "safe";
+            const INTERMEDIATE_SAFE_CO2_CSS = "intermediate";
+            const DANGER_CO2_CSS = "intermediate";
+
+
+            function getSensorData(num) {
+                return new Promise(function(resolve, reject) {
+                    const getAPIData = new XMLHttpRequest();
+                    const url = "http://raspberrypi:5000/";
+                    getAPIData.open("GET", url);
+                    getAPIData.send();
+                    getAPIData.onload = function() {
+                        const APIData = JSON.parse(getAPIData.responseText);
+                        
+                        resolve(APIData);
+                    };
+                });
+            }
+
+            function updatePage( data ) {
+                const co2_ppm = data['co2_ppm'];
+
+                let safety_string = "";
+                
+                if (co2_ppm <= SUPER_SAFE_CO2) {
+                    document.body.className = SUPER_SAFE_CO2_CSS;
+                    safety_string = "Super safe!";
+                } else if (co2_ppm <= SAFE_CO2) {
+                    document.body.className = SAFE_CO2_CSS;
+                    safety_string = "Safe!";
+                } else if (co2_ppm <= INTERMEDIATE_CO2) {
+                    document.body.className = INTERMEDIATE_SAFE_CO2_CSS;
+                    safety_string = "Intermediate - open the windows!";
+                } else {
+                    document.body.className = DANGER_CO2_CSS;
+                    safety_string = "DANGER - open the windows!";
+                }
+
+                document.getElementById("head").innerHTML = "CO<sub>2</sub>: " + co2_ppm + "ppm - " + safety_string;
+
+                const date_now = new Date();
+                document.getElementById("updated") .innerText = date_now.toLocaleString('en-GB', { timeZone: 'UTC' });
+                // console.log( data )
+            }
+
+            function updateTimer(time) {
+                document.getElementById("timer").innerText = time;
+            }
+
+            function getAPIandUpdate() {
+                updateTimer(3)
+                window.setTimeout( () => { updateTimer(2)}, 1000 )
+                window.setTimeout( () => { updateTimer(1)}, 2000 )
+                getSensorData().then( updatePage )
+            }
+
+            window.setInterval( getAPIandUpdate, 3000 )
+
+            getSensorData().then( getAPIandUpdate );
+            // -->
+        </script>
+
+    </head>
+<body>
+
+<h1 id="head">Loading...</h1>
+<p>Updated: <span id="updated">-</span>. Updating in: <span id="timer">&nbsp;</span> seconds.</p>
+
+</body>
+</html>
